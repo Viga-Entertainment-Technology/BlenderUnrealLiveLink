@@ -68,13 +68,27 @@ class ModalTimerOperator(bpy.types.Operator):
         if event.type == 'TIMER':
             mytool = context.scene.my_tool
             message = mytool.my_enum + "_"+f"{mytool.my_string}="
+            #bpy.data.objects["Cube"] 
             if(mytool.my_enum=="O"):
                 message+="(" + str(bpy.data.objects[mytool.my_string].location.x) + "," + str(bpy.data.objects[mytool.my_string].location.y) +  "," + str(bpy.data.objects[mytool.my_string].location.z) +  "," + str(bpy.data.objects[mytool.my_string].rotation_quaternion.x) +  "," + str(bpy.data.objects[mytool.my_string].rotation_quaternion.y )+  "," + str(bpy.data.objects[mytool.my_string].rotation_quaternion.z) + "," + str(bpy.data.objects[mytool.my_string].rotation_quaternion.w)+ ")" + "||"            
             else:
+                count = 0
                 for i in bpy.data.objects[mytool.my_string].pose.bones:
-                    message+=i.name + ":(" + str(i.location.x) + "," + str(i.location.y) +  "," + str(i.location.z) +  "," + str(i.rotation_quaternion.x) +  "," + str(i.rotation_quaternion.y )+  "," + str(i.rotation_quaternion.z) + "," + str(i.rotation_quaternion.w)+ ")" + "|"
+                    #if(count < 3):
+                    #    count = count + 1
+                    #else:
+                    #    break
+                    #boneEdit = bpy.data.armatures['root'].bones[i.name].matrix_local.to_quaternion()
+                    obj = i.id_data
+                    matrix_final = obj.matrix_world @ i.matrix
+                    locationWS = i.location * 100.0
+                    quaternionWS =i.rotation_quaternion# matrix_final.to_quaternion()
+                    #quaternionWS = i.rotation_quaternion * boneEdit
+                    #print(quaternionWS)
+                    
+                    message+=i.name + ":(" + "{:.9f}".format(locationWS.x)+ "," + "{:.9f}".format(locationWS.y) +  "," + "{:.9f}".format(locationWS.z) +  "," + "{:.9f}".format(-quaternionWS.x) +  "," + "{:.9f}".format(quaternionWS.y)+  "," + "{:.9f}".format(-quaternionWS.z)+ "," + "{:.9f}".format(quaternionWS.w)+ ")" + "|"
                 message = message + "|"
-            #print(message)
+            print(message)
             self.UDPSock.sendto(message.encode(), self.addr)
             # change theme color, silly!
             color = context.preferences.themes[0].view_3d.space.gradients.high_gradient

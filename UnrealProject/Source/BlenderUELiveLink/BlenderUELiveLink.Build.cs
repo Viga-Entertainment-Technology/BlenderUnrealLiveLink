@@ -8,7 +8,9 @@ public class BlenderUELiveLink : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "LiveLink" , "AnimGraphRuntime",
+			"AnimGraph",
+			"BlueprintGraph","LiveLinkInterface"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

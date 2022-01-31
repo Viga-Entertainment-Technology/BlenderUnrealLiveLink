@@ -189,6 +189,7 @@ FVector FRgbPoseLiveLinkSource::TriangleNormal(FVector a, FVector b, FVector c)
 
 void FRgbPoseLiveLinkSource::HandleReceivedData2(TSharedPtr<TArray<uint8>, ESPMode::ThreadSafe> ReceivedData)
 {
+	/// CONVERTNG TO STRING
 	FString recvedString;
 	int32 Read = ReceivedData->Num();
 	recvedString.Empty(ReceivedData->Num());
@@ -196,74 +197,44 @@ void FRgbPoseLiveLinkSource::HandleReceivedData2(TSharedPtr<TArray<uint8>, ESPMo
 	{
 		recvedString += TCHAR(Byte);
 	}
-	// UE_LOG(LogTemp, Warning, TEXT("num bytes = %i,    %s"), Read, *recvedString);
+	
+	///		CONVERTING TO POSE FRAME MAP ( BONENAME -> TRANSFORMS)
 	TArray<FString> PoseMessageArray;
 	recvedString.ParseIntoArray(PoseMessageArray, TEXT("||"), false);
-	//PoseMessageArray.RemoveAt(PoseMessageArray.Num() - 1);
-	//PoseMessageArray.RemoveAt(PoseMessageArray.Num() - 1);
-
-	// static FLiveLinkFrameData LiveLinkFrame;
-	FName SubjectName = FName(TEXT("RgbPose"));
+	PoseFrame poseFrame = PoseFrame(PoseMessageArray);
 	
-	
-	// Push Bone data to livelink client
+	///		CREATING FRAME DATA TO SEND 
 	FTimer timer;
 	FLiveLinkFrameDataStruct FrameData1(FLiveLinkAnimationFrameData::StaticStruct());
 	FLiveLinkAnimationFrameData& AnimFrameData = *FrameData1.Cast<FLiveLinkAnimationFrameData>();
 	AnimFrameData.WorldTime = FLiveLinkWorldTime((double)(timer.GetCurrentTime()));
 
+	///		LIVE LINK SUBJECT NAME
+	FName SubjectName = FName(TEXT("RgbPose"));
 
-	PoseFrame poseFrame = PoseFrame(PoseMessageArray);
-	//FTransform currentFrameTransform(*poseFrame.PoseFrameRot.Find(FString("Cube")), *poseFrame.PoseFrameMap.Find(FString("Cube")));
-	//poseFrame.
-	// Calculate for root bone
-	// movement and rotatation of center
-	//transforms[transformIndex] = currentFrameTransform; 
-
+	///		DEFINING SKELETON STRUCTURE DATA 
 	if (!PoseLabelsLoaded)
 	{
 		AddStaticSkeletonData(SubjectName,poseFrame.BoneName_TransformMap);
 		PoseLabelsLoaded = true;
 	}
 	
-	
+	///		SENDING ACTUAL TRANSFORMS TO ANIM FRAME DATA ACCORDING TO THE SKELETON STRUCTURE DEFINED 
 	int count = 0;
 	TArray<FTransform> transforms;
-	/*transforms.Reset(poseFrame.BoneName_TransformMap.Num());
-	int32 transformIndex = transforms.AddUninitialized(poseFrame.BoneName_TransformMap.Num());
-	*/
 	transforms.Reset(poseFrame.BoneName_TransformMap.Num());
 	int32 transformIndex = transforms.AddUninitialized(poseFrame.BoneName_TransformMap.Num());
 	bool first = true; 
 
 	for (const TPair<FString, FTransform>& pair : poseFrame.BoneName_TransformMap)
 	{
-		if (first == true) {
-			transforms[count] = FTransform();
-			first = false;
-		}
-		else {
+		{
 			transforms[count] = pair.Value;
 		}
-		//int32 transformIndex = transforms.AddUninitialized(1);
-		//boneNames.Add(FName(*pair.Key));
-		//boneParents.Add(count); //0 - root
-		
-		UE_LOG(LogTemp, Warning, TEXT("Location is %s %f %f %f Rotation is : x =  %f y =  %f z = %f w = %f" ),	*boneNames[count].ToString(), pair.Value.GetLocation().X, pair.Value.GetLocation().Y, pair.Value.GetLocation().Z
-		, pair.Value.GetRotation().X, pair.Value.GetRotation().Y , pair.Value.GetRotation().Z, pair.Value.GetRotation().W);
 		count++;
 	}
-	//UE_LOG(LogClass, Warning, TEXT("My Int Value: %s"),*currentFrameTransform.GetLocation().ToString());
-	//UE_LOG(LogClass, Warning, TEXT("Transform Value is : %d"), transforms.Num());
-	//transforms[transformIndex] = FTransform(*(poseFrame.PoseFrameRot.Find(BoneMap[transformIndex])), *(poseFrame.PoseFrameMap.Find(BoneMap[transformIndex])), {1,1,1});
-
-	// FQuat hip_ini = FRotator::MakeFromEuler(FVector(90,90, 90)).Quaternion();
-	// transforms[transformIndex].SetLocation(*poseFrame.PoseFrameMap.Find(FString("hip")));
- //    transforms[transformIndex].SetRotation(hip_ini * );
- //    transforms[transformIndex].SetScale3D(FVector(1, 1, 1));
 
 	AnimFrameData.Transforms.Append(transforms);
-
 	Client->PushSubjectFrameData_AnyThread(FLiveLinkSubjectKey(SourceGuid, SubjectName), MoveTemp(FrameData1));
 }
 
@@ -498,63 +469,11 @@ void FRgbPoseLiveLinkSource::AddStaticSkeletonData(FName subjectName, TMap<FStri
 	for (const TPair<FString, FTransform>& pair : BoneName_TransformMap)
 	{
 		boneNames.Add(FName(*pair.Key));
-		int boneParent = (count == 0 )? -1 : (count - 1);
-		boneParents.Add(0); //0 - root
+		int boneParent = (count == 0 )? 0 : (count - 1);
+		boneParents.Add(boneParent); //0 - root
 		count++;
 		//if (count > 2) break;
 	}
-	//boneNames.Add("root");
-	//boneNames.Add("pelvis");
-	// boneNames.Add("abdomenUpper");
-	// boneNames.Add("spine");
-	// boneNames.Add("neck");
-	// boneNames.Add("head");
-	//
-	// boneNames.Add("rShldr");
-	// boneNames.Add("rShldrBend");
-	// boneNames.Add("rForearmBend");
-	// boneNames.Add("rHand");
-	//
-	// boneNames.Add("lShldr");
-	// boneNames.Add("lShldrBend");
-	// boneNames.Add("lForearmBend");
-	// boneNames.Add("lHand");
-	//
-	// boneNames.Add("rThigh");
-	// boneNames.Add("rThighBend");
-	// boneNames.Add("rShin");
-	// boneNames.Add("rFoot");
-	//
-	// boneNames.Add("lThigh");
-	// boneNames.Add("lThighBend");
-	// boneNames.Add("lShin");
-	// boneNames.Add("lFoot");
-
-	//boneParents.Add(1); //0 - hip
-	// boneParents.Add(0); //1 - abdomenUpper
-	// boneParents.Add(1); //2 - spine
-	// boneParents.Add(2); //3 - neck
-	// boneParents.Add(3); //4 - head
-	//
-	// boneParents.Add(3); //5 - rShldr
-	// boneParents.Add(5); //6 - rShldrBend
-	// boneParents.Add(6); //7 - rForearmBend
-	// boneParents.Add(7); //8 - rHand
-	//
-	// boneParents.Add(4); //9 - lShldr
-	// boneParents.Add(4); //10 - lShldrBend
-	// boneParents.Add(3); //11 - lForearmBend
-	// boneParents.Add(6); //12 - lHand
-	//
-	// boneParents.Add(0);  //13 -  rThigh
-	// boneParents.Add(13);  //14 -  rThighBend
-	// boneParents.Add(14); //15 - rShin
-	// boneParents.Add(15); //16 - rFoot
-	//
-	// boneParents.Add(0);   //17 -  lThigh
-	// boneParents.Add(17);  //18 -  lThighBend
-	// boneParents.Add(18);  //19 - lShin
-	// boneParents.Add(19);  //20 - lFoot
 	
 	FLiveLinkSubjectKey Key = FLiveLinkSubjectKey(SourceGuid, subjectName);
 	FLiveLinkStaticDataStruct StaticData(FLiveLinkSkeletonStaticData::StaticStruct());

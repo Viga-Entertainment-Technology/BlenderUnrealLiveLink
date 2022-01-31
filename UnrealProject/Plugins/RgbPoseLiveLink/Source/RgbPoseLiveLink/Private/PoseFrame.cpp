@@ -55,9 +55,9 @@ FTransform PoseFrame::ConvertToTransform(FString transformText) {
 	//Split the array by comma delimiter
 	TArray<FString> vectorElementArray;
 	transformText.ParseIntoArray(vectorElementArray, TEXT(","), false);
-	float x = 100.0f * FCString::Atof(*vectorElementArray[0]);
-	float y = 100.0f * FCString::Atof(*vectorElementArray[1]);
-	float z = 100.0f * FCString::Atof(*vectorElementArray[2]);
+	float x = FCString::Atof(*vectorElementArray[0]);
+	float y = FCString::Atof(*vectorElementArray[1]);
+	float z = FCString::Atof(*vectorElementArray[2]);
 	float rx = FCString::Atof(*vectorElementArray[3]);
 	float ry = FCString::Atof(*vectorElementArray[4]);
 	float rz = FCString::Atof(*vectorElementArray[5]);
@@ -65,5 +65,5 @@ FTransform PoseFrame::ConvertToTransform(FString transformText) {
 	/*float sx = 100 * FCString::Atof(*vectorElementArray[7]);
 	float sy = 100 * FCString::Atof(*vectorElementArray[8]);
 	float sz = 100 * FCString::Atof(*vectorElementArray[9]);*/
-	return FTransform(FQuat(rx, -ry,rz,rw), FVector(x,-y, z));
+	return FTransform(FQuat(rx, ry,rz,rw), FVector(x,y, z));
 }
