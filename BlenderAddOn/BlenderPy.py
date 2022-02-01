@@ -3,7 +3,6 @@ from socket import *
 
 class MyProperties(bpy.types.PropertyGroup):
     my_string : bpy.props.StringProperty(name ="Name")
-    my_float : bpy.props.FloatProperty(name = "Enter Value")
     my_enum : bpy.props.EnumProperty(
         name = "Mesh Type",
         description = "enum desc",
@@ -43,8 +42,8 @@ class BlenderUELiveLink(bpy.types.Panel):
         row.label(text="Port : 2000")
         
         layout.prop(mytool,"my_enum")
-        layout.prop(mytool,"my_enum1")        
-        layout.prop(mytool,"my_string")
+        layout.prop(mytool,"my_enum1")
+        layout.prop(mytool,"my_string")         
         row=layout.row()
         row.operator("wm.modal_timer_operator", text="Start Live Link")
         # row=layout.row()
@@ -62,11 +61,25 @@ class ModalTimerOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type in {'RIGHTMOUSE', 'ESC'}:
+            context.scene.my_tool.my_string=""
             self.cancel(context)
             return {'CANCELLED'}
 
         if event.type == 'TIMER':
             mytool = context.scene.my_tool
+            # get selected armature/static mesh name
+            list=bpy.context.selected_objects
+            for obj in list:
+                  if obj.type== 'ARMATURE' and mytool.my_enum=="A":
+                     Type=obj.name
+                   
+                  elif obj.type== 'MESH' and mytool.my_enum=="O":
+                     Type=obj.name
+                  
+                  else:
+                      return{'CANCELLED'}
+            mytool.my_string=Type 
+                
             message = mytool.my_enum + "_"+f"{mytool.my_string}="
             #bpy.data.objects["Cube"] 
             if(mytool.my_enum=="O"):
