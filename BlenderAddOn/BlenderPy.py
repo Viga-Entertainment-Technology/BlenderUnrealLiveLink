@@ -98,8 +98,10 @@ class ModalTimerOperator(bpy.types.Operator):
                     quaternionWS =i.rotation_quaternion# matrix_final.to_quaternion()
                     #quaternionWS = i.rotation_quaternion * boneEdit
                     #print(quaternionWS)
-                    
-                    message+=i.name + ":(" + "{:.9f}".format(locationWS.x)+ "," + "{:.9f}".format(locationWS.y) +  "," + "{:.9f}".format(locationWS.z) +  "," + "{:.9f}".format(-quaternionWS.x) +  "," + "{:.9f}".format(quaternionWS.y)+  "," + "{:.9f}".format(-quaternionWS.z)+ "," + "{:.9f}".format(quaternionWS.w)+ ")" + "|"
+                    #mixamo bone name conversion
+                    bone_name=i.name
+                    split_name=bone_name.split(":")[-1]
+                    message+=split_name + ":(" + "{:.9f}".format(locationWS.x)+ "," + "{:.9f}".format(locationWS.y) +  "," + "{:.9f}".format(locationWS.z) +  "," + "{:.9f}".format(-quaternionWS.x) +  "," + "{:.9f}".format(quaternionWS.y)+  "," + "{:.9f}".format(-quaternionWS.z)+ "," + "{:.9f}".format(quaternionWS.w)+ ")" + "|"
                 message = message + "|"
             print(message)
             self.UDPSock.sendto(message.encode(), self.addr)
