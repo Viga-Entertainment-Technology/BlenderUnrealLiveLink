@@ -5,6 +5,7 @@ class PoseFrame
 public:
     TMap<FString, FTransform> ObjectName_TransformMap;
     TMap<FString, FTransform> BoneName_TransformMap;
+    char index;
     PoseFrame(TArray<FString> PoseFrameArray);
 
     /// <summary>

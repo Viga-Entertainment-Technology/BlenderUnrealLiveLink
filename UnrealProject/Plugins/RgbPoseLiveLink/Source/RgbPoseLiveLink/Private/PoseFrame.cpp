@@ -28,6 +28,7 @@ PoseFrame::PoseFrame(TArray<FString> PoseFrameArray)
 		else if (name[0] == 'A' && name[1] == '_') {
 			//Armature 
 			//PoseFrameKeyValuePair[0].RemoveAt(0);
+			index=name[PoseFrameKeyValuePair[0].Len() - 1];
 			TArray<FString> BoneNameTransformPair;
 			PoseFrameKeyValuePair[1].ParseIntoArray(BoneNameTransformPair, TEXT("|"), false);
 			for (size_t j = 0; j < BoneNameTransformPair.Num(); j++)
