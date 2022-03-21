@@ -88,7 +88,7 @@ private:
 	FTimespan WaitTime;
 
 	// List of subjects we've already encountered
-	TArray<char>index_list;
+	TArray<FString>Subname_list;
 
 	// Buffer to receive socket data into
 	TArray<uint8> RecvBuffer;

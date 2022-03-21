@@ -207,23 +207,23 @@ void FRgbPoseLiveLinkSource::HandleReceivedData2(TSharedPtr<TArray<uint8>, ESPMo
 	PoseFrame poseFrame = PoseFrame(PoseMessageArray);
 	
 	///		LIVE LINK SUBJECT NAME
-	FString Subname = "RgbPose";
-	Subname.AppendChar(poseFrame.index);
+	FString Subname;
+	Subname = poseFrame.Subjectname;
 	FName SubjectName = FName(*Subname);
 
-	if (index_list.Num()==0)
+	if (Subname_list.Num()==0)
 	{
 		FLiveLinkSubjectPreset Preset;
 		Preset.Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
 		Client->CreateSubject(Preset);
-		index_list.Push(poseFrame.index);
+		Subname_list.Push(poseFrame.Subjectname);
 	}
-		if (!index_list.Contains(poseFrame.index))
+		if (!Subname_list.Contains(poseFrame.Subjectname))
 		{
 			FLiveLinkSubjectPreset Preset;
 			Preset.Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
 			Client->CreateSubject(Preset);
-			index_list.Push(poseFrame.index);
+			Subname_list.Push(poseFrame.Subjectname);
 		}
 		///		CREATING FRAME DATA TO SEND 
 		Client->SetSubjectEnabled(FLiveLinkSubjectKey(SourceGuid, SubjectName),true);
@@ -410,8 +410,9 @@ void FRgbPoseLiveLinkSource::HandleReceivedData(TSharedPtr<TArray<uint8>, ESPMod
 	PoseFrame poseFrame = PoseFrame(PoseMessageArray);
 	//FTransform currentFrameTransform(*poseFrame.PoseFrameRot.Find(FString("Cube")), *poseFrame.PoseFrameMap.Find(FString("Cube")));
 	// static FLiveLinkFrameData LiveLinkFrame;
-	FString Subname = "RgbPose";
-	Subname.AppendChar(poseFrame.index);
+	///		LIVE LINK SUBJECT NAME
+	FString Subname;
+	Subname = poseFrame.Subjectname;
 	FName SubjectName = FName(*Subname);
 
 		FLiveLinkSubjectKey Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
