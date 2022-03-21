@@ -69,7 +69,6 @@ private:
 	FText SourceStatus;
 
 	FIPv4Endpoint DeviceEndpoint;
-	TArray<FName> boneNames;
 	// Socket to receive data on
 	FSocket* Socket;
 
@@ -89,13 +88,12 @@ private:
 	FTimespan WaitTime;
 
 	// List of subjects we've already encountered
-	TSet<FName> EncounteredSubjects;
+	TArray<FString>Subname_list;
 
 	// Buffer to receive socket data into
 	TArray<uint8> RecvBuffer;
 
 	// Check if static data is setup
-	bool PoseLabelsLoaded = false;
 
 	// timeStamp for measuring FPS
 	double LastFrameTime = 0;
