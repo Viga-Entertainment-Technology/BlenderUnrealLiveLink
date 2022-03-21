@@ -1,9 +1,9 @@
 import bpy
 from socket import *
-list=[]
+sub=[]
 def Sub_update(self,context):
         mytool=context.scene.my_tool
-        sub=[]
+        list=bpy.context.selected_objects
         for obj in list:
                 if obj.type== 'ARMATURE' and mytool.my_enum=="A":
                     sub.append((obj.name,obj.name,""))
@@ -13,25 +13,47 @@ def Sub_update(self,context):
                    
                 else:
                     return{'CANCELLED'}
-         
-        return sub  
-class SimpleOperator(bpy.types.Operator):
+          
+def returnSub(self,context):
+    res=[]
+    for i in sub:
+      if i not in res:
+         res.append(i)
+    return res
+
+def removeSub(self,context):
+    mytool = context.scene.my_tool
+    a=(mytool.my_string,mytool.my_string,"")
+    sub.remove(a)
+    
+class AddSubjects(bpy.types.Operator):
     """Tooltip"""
-    bl_idname = "object.simple_operator"
-    bl_label = "Simple Object Operator"
+    bl_idname = "object.subjects_register"
+    bl_label = "Add Subjects"
+    bl_options = {"UNDO"}
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
-        global my_items
-        global list
-        list=bpy.context.selected_objects
         Sub_update(self,context)
-        return {'FINISHED'}
+        return{'FINISHED'}
+    
+class RemoveSubjects(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "object.subjects_removal"
+    bl_label = "Remove Subjects"
+    bl_options = {"UNDO"}
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        removeSub(self,context)
+        return{'FINISHED'}
     
 class MyProperties(bpy.types.PropertyGroup): 
-        
+ 
     my_enum : bpy.props.EnumProperty(
         name = "Mesh Type",
         description = "enum desc",
@@ -48,11 +70,10 @@ class MyProperties(bpy.types.PropertyGroup):
     my_string : bpy.props.EnumProperty(
         name = "Subjects",
         description = "enum desc",
-        items=Sub_update,
+        items=returnSub,
         default=None
-    )
+    )   
     
-previous=""
 class BlenderUELiveLink(bpy.types.Panel):
     #bl_parent_id = "BlenderUE LiveLink"
     bl_idname = ""
@@ -77,7 +98,9 @@ class BlenderUELiveLink(bpy.types.Panel):
         layout.prop(mytool,"my_enum1")
         layout.prop(mytool,"my_string")
         row=layout.row()
-        op=row.operator(SimpleOperator.bl_idname, text="Add subjects")       
+        row.operator(AddSubjects.bl_idname, text="Add subjects")
+        row=layout.row()
+        row.operator(RemoveSubjects.bl_idname, text="Remove subject")      
         row=layout.row()
         row.operator("wm.modal_timer_operator", text="Start Live Link")
         # row=layout.row()
@@ -86,6 +109,7 @@ class ModalTimerOperator(bpy.types.Operator):
     """Operator which runs its self from a timer"""
     bl_idname = "wm.modal_timer_operator"
     bl_label = "Modal Timer Operator"
+    bl_options = {"UNDO"}
     host = "127.0.0.1" # set to IP address of target computer
     port = 2000
     addr = (host, port)
@@ -93,27 +117,12 @@ class ModalTimerOperator(bpy.types.Operator):
     _timer = None      
     
     def modal(self, context, event):
+        mytool = context.scene.my_tool
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             self.cancel(context)
-            list.clear()
+            sub.clear()
             return {'CANCELLED'}
-
         if event.type == 'TIMER':
-            mytool = context.scene.my_tool
-            # get selected armature/static mesh name
-            global previous
-            if previous=="":
-               previous=mytool.my_string
-               bpy.ops.object.select_all(action='DESELECT')
-               
-            if previous!=mytool.my_string:
-               bpy.data.objects[previous].select_set(False)
-               bpy.data.objects[mytool.my_string].select_set(True)
-               previous=mytool.my_string
-               
-            else:
-               bpy.data.objects[mytool.my_string].select_set(True)
-               
             message = mytool.my_enum + "_"+mytool.my_string+"="
             #bpy.data.objects["Cube"] 
             if(mytool.my_enum=="O"):
@@ -158,7 +167,7 @@ class ModalTimerOperator(bpy.types.Operator):
 
 
 
-classes = [SimpleOperator,MyProperties,BlenderUELiveLink,ModalTimerOperator]
+classes = [AddSubjects,RemoveSubjects,MyProperties,BlenderUELiveLink,ModalTimerOperator]
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
