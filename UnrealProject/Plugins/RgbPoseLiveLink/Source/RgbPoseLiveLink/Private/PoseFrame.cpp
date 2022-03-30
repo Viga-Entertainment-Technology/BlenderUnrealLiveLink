@@ -28,9 +28,10 @@ PoseFrame::PoseFrame(TArray<FString> PoseFrameArray)
 		else if (name[0] == 'A' && name[1] == '_') {
 			//Armature 
 			//PoseFrameKeyValuePair[0].RemoveAt(0);
+			TMap<FString, FTransform> BoneName_TransformMap;
 			TArray<FString> SubnameArr;
 			PoseFrameKeyValuePair[0].ParseIntoArray(SubnameArr, TEXT("_"), false);
-			Subjectname = SubnameArr[1];
+			Subjectname.Add(SubnameArr[1]);
 			TArray<FString> BoneNameTransformPair;
 			PoseFrameKeyValuePair[1].ParseIntoArray(BoneNameTransformPair, TEXT("|"), false);
 			for (size_t j = 0; j < BoneNameTransformPair.Num(); j++)
@@ -44,6 +45,7 @@ PoseFrame::PoseFrame(TArray<FString> PoseFrameArray)
 				//Save the bone name and its transform in a different array 
 				BoneName_TransformMap.Add(boneName,boneTransform);
 			}
+			bonevect.push_back(BoneName_TransformMap);
 		}
 	}
 }

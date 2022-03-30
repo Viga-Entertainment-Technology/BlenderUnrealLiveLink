@@ -207,41 +207,44 @@ void FRgbPoseLiveLinkSource::HandleReceivedData2(TSharedPtr<TArray<uint8>, ESPMo
 	PoseFrame poseFrame = PoseFrame(PoseMessageArray);
 	
 	///		LIVE LINK SUBJECT NAME
-	FString Subname;
-	Subname = poseFrame.Subjectname;
-	FName SubjectName = FName(*Subname);
 
-	if (Subname_list.Num()==0)
+	for (int i = 0; i != poseFrame.Subjectname.Num(); i++)
 	{
-		FLiveLinkSubjectPreset Preset;
-		Preset.Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
-		Client->CreateSubject(Preset);
-		Subname_list.Push(poseFrame.Subjectname);
-	}
-		if (!Subname_list.Contains(poseFrame.Subjectname))
+		FString Subname;
+		Subname = poseFrame.Subjectname[i];
+		FName SubjectName = FName(*Subname);
+
+		if (Subname_list.Num() == 0)
 		{
 			FLiveLinkSubjectPreset Preset;
 			Preset.Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
 			Client->CreateSubject(Preset);
-			Subname_list.Push(poseFrame.Subjectname);
+			Subname_list.Push(poseFrame.Subjectname[i]);
+		}
+		if (!Subname_list.Contains(poseFrame.Subjectname[i]))
+		{
+			FLiveLinkSubjectPreset Preset;
+			Preset.Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
+			Client->CreateSubject(Preset);
+			Subname_list.Push(poseFrame.Subjectname[i]);
 		}
 		///		CREATING FRAME DATA TO SEND 
-		Client->SetSubjectEnabled(FLiveLinkSubjectKey(SourceGuid, SubjectName),true);
+		Client->SetSubjectEnabled(FLiveLinkSubjectKey(SourceGuid, SubjectName), true);
 		FTimer timer;
 		FLiveLinkFrameDataStruct FrameData1(FLiveLinkAnimationFrameData::StaticStruct());
 		FLiveLinkAnimationFrameData& AnimFrameData = *FrameData1.Cast<FLiveLinkAnimationFrameData>();
 		AnimFrameData.WorldTime = FLiveLinkWorldTime((double)(timer.GetCurrentTime()));
 
 		///		DEFINING SKELETON STRUCTURE DATA 
-			AddStaticSkeletonData(SubjectName, poseFrame.BoneName_TransformMap);
+		AddStaticSkeletonData(SubjectName, poseFrame.bonevect[i]);
 		///		SENDING ACTUAL TRANSFORMS TO ANIM FRAME DATA ACCORDING TO THE SKELETON STRUCTURE DEFINED 
 		int count = 0;
 		TArray<FTransform> transforms;
-		transforms.Reset(poseFrame.BoneName_TransformMap.Num());
-		int32 transformIndex = transforms.AddUninitialized(poseFrame.BoneName_TransformMap.Num());
+		transforms.Reset(poseFrame.bonevect[i].Num());
+		int32 transformIndex = transforms.AddUninitialized(poseFrame.bonevect[i].Num());
 		bool first = true;
 
-		for (const TPair<FString, FTransform>& pair : poseFrame.BoneName_TransformMap)
+		for (const TPair<FString, FTransform>& pair : poseFrame.bonevect[i])
 		{
 			{
 				transforms[count] = pair.Value;
@@ -251,6 +254,7 @@ void FRgbPoseLiveLinkSource::HandleReceivedData2(TSharedPtr<TArray<uint8>, ESPMo
 
 		AnimFrameData.Transforms.Append(transforms);
 		Client->PushSubjectFrameData_AnyThread(FLiveLinkSubjectKey(SourceGuid, SubjectName), MoveTemp(FrameData1));
+	}
 }
 
 FTransform FRgbPoseLiveLinkSource::CalculateLookRotaion(FVector Source, FVector Target)
@@ -412,12 +416,12 @@ void FRgbPoseLiveLinkSource::HandleReceivedData(TSharedPtr<TArray<uint8>, ESPMod
 	// static FLiveLinkFrameData LiveLinkFrame;
 	///		LIVE LINK SUBJECT NAME
 	FString Subname;
-	Subname = poseFrame.Subjectname;
+	Subname = poseFrame.Subjectname[0];
 	FName SubjectName = FName(*Subname);
 
 		FLiveLinkSubjectKey Key = FLiveLinkSubjectKey(SourceGuid, SubjectName);
 		Client->SetSubjectEnabled(Key,true);
-		AddStaticSkeletonData(SubjectName, poseFrame.BoneName_TransformMap);
+		AddStaticSkeletonData(SubjectName, poseFrame.bonevect[0]);
 		FLiveLinkFrameDataStruct FrameData(FLiveLinkAnimationFrameData::StaticStruct());
 		FLiveLinkAnimationFrameData& AnimationData = *FrameData.Cast<FLiveLinkAnimationFrameData>();
 		//AnimationData.Transforms.Reserve(1);
@@ -426,9 +430,9 @@ void FRgbPoseLiveLinkSource::HandleReceivedData(TSharedPtr<TArray<uint8>, ESPMod
 
 		//Addding transforms to data frame
 		TArray<FTransform> transforms;
-		transforms.Reset(poseFrame.BoneName_TransformMap.Num());
+		transforms.Reset(poseFrame.bonevect[0].Num());
 		//int count = 0;
-		for (const TPair<FString, FTransform>& pair : poseFrame.BoneName_TransformMap)
+		for (const TPair<FString, FTransform>& pair : poseFrame.bonevect[0])
 		{
 			int32 transformIndex = transforms.AddUninitialized(1);
 			transforms[transformIndex] = pair.Value;
